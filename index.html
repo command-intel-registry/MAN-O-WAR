@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Man O' War — Enlistment Record</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --olive:#2B3323; --olive-2:#3A4530; --khaki:#C7B888; --sand:#EDE6D6;
+    --brass:#A8863C; --brass-bright:#C9A050; --ink:#1C2118; --alert:#8B3A2E;
+    --border:rgba(199,184,136,0.25);
+  }
+  *{ box-sizing:border-box; }
+  body{
+    margin:0; background:var(--olive); color:var(--sand);
+    font-family:'Inter',sans-serif; min-height:100vh;
+    background-image:
+      radial-gradient(circle at 20% 10%, rgba(168,134,60,0.08), transparent 45%),
+      radial-gradient(circle at 85% 90%, rgba(168,134,60,0.06), transparent 40%);
+  }
+  .stencil{ font-family:'Oswald',sans-serif; letter-spacing:0.04em; }
+  .mono{ font-family:'IBM Plex Mono',monospace; }
+  .wrap{ max-width:640px; margin:0 auto; padding:48px 20px 80px; }
+  .seal{
+    width:64px; height:64px; border-radius:9999px; border:2px solid var(--brass);
+    display:flex; align-items:center; justify-content:center; margin:0 auto 18px;
+    background:radial-gradient(circle at 30% 25%, rgba(201,160,80,0.2), transparent 70%);
+  }
+  .seal span{ font-family:'Oswald',sans-serif; font-weight:700; color:var(--brass-bright); font-size:22px; }
+  h1{ text-align:center; text-transform:uppercase; font-size:26px; font-weight:700; margin:0 0 4px; color:var(--sand); }
+  .subtitle{ text-align:center; color:var(--khaki); font-size:12px; text-transform:uppercase; letter-spacing:0.18em; margin-bottom:6px; }
+  .ref{ text-align:center; color:rgba(237,230,214,0.45); font-size:11px; margin-bottom:34px; }
+  .card{
+    background:var(--ink); border:1px solid var(--border); border-radius:4px;
+    padding:28px 26px; position:relative;
+  }
+  .card::before{
+    content:""; position:absolute; top:0; left:24px; right:24px; height:1px;
+    background:repeating-linear-gradient(90deg, var(--brass) 0 6px, transparent 6px 12px);
+    opacity:0.4;
+  }
+  .section-label{
+    text-transform:uppercase; font-size:11px; letter-spacing:0.14em; color:var(--brass-bright);
+    margin:26px 0 14px; padding-bottom:6px; border-bottom:1px solid var(--border);
+  }
+  .section-label:first-of-type{ margin-top:6px; }
+  .row{ display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px; }
+  .row.single{ grid-template-columns:1fr; }
+  @media (max-width:520px){ .row{ grid-template-columns:1fr; } }
+  label{ display:block; font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:var(--khaki); margin-bottom:6px; }
+  label .opt{ text-transform:none; letter-spacing:0; color:rgba(199,184,136,0.5); font-size:10px; }
+  input, select, textarea{
+    width:100%; background:rgba(199,184,136,0.06); border:1px solid var(--border);
+    border-radius:3px; padding:10px 12px; color:var(--sand); font-size:14px; font-family:'Inter',sans-serif;
+  }
+  input:focus, select:focus, textarea:focus{ outline:none; border-color:var(--brass); background:rgba(199,184,136,0.1); }
+  input::placeholder, textarea::placeholder{ color:rgba(237,230,214,0.3); }
+  select{ cursor:pointer; }
+  textarea{ resize:vertical; min-height:70px; }
+  .field-full{ grid-column:1/-1; }
+  .submit-row{ margin-top:30px; }
+  button{
+    width:100%; background:var(--brass); color:var(--ink); border:none; border-radius:3px;
+    padding:14px; font-size:13px; font-weight:600; text-transform:uppercase; letter-spacing:0.1em;
+    cursor:pointer; font-family:'Oswald',sans-serif; transition:background .15s ease;
+  }
+  button:hover{ background:var(--brass-bright); }
+  button:disabled{ opacity:0.5; cursor:default; }
+  .error{ background:rgba(139,58,46,0.15); border:1px solid rgba(139,58,46,0.4); color:#E8B4A8; font-size:13px; padding:10px 12px; border-radius:3px; margin-bottom:16px; }
+  .success{ text-align:center; padding:20px 0; }
+  .success .seal{ border-color:var(--brass-bright); }
+  .success h2{ font-family:'Oswald',sans-serif; text-transform:uppercase; font-size:20px; margin:10px 0 8px; }
+  .success p{ color:var(--khaki); font-size:14px; line-height:1.6; }
+  .success .refnum{ font-family:'IBM Plex Mono',monospace; color:var(--brass-bright); font-size:13px; margin-top:12px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="seal"><span>GTC</span></div>
+  <h1>Enlistment Record</h1>
+  <p class="subtitle">Man O' War — Cadet Registration</p>
+  <p class="ref">Submissions are reviewed by unit officers before approval. Nothing is issued until reviewed.</p>
+
+  <div class="card">
+    <div id="formError" class="error" style="display:none"></div>
+
+    <form id="regForm">
+      <div class="section-label">Personal Information</div>
+      <div class="row">
+        <div class="field-full" style="grid-column:1/-1">
+          <label>Full Name</label>
+          <input type="text" id="full_name" required>
+        </div>
+      </div>
+      <div class="row">
+        <div><label>Date of Birth</label><input type="date" id="date_of_birth" required></div>
+        <div><label>Gender</label>
+          <select id="gender" required>
+            <option value="">Select</option>
+            <option>Male</option><option>Female</option>
+          </select>
+        </div>
+      </div>
+      <div class="row">
+        <div><label>Phone Number</label><input type="tel" id="phone" placeholder="080..." required></div>
+        <div><label>State of Origin</label><input type="text" id="state_of_origin"></div>
+      </div>
+
+      <div class="section-label">Address</div>
+      <div class="row single">
+        <div><label>Home Address</label><input type="text" id="address" required></div>
+      </div>
+      <div class="row">
+        <div><label>Nearest Bus Stop</label><input type="text" id="bus_stop"></div>
+        <div><label>LGA</label><input type="text" id="lga"></div>
+      </div>
+
+      <div class="section-label">Guardian Contact</div>
+      <p style="font-size:12px;color:rgba(237,230,214,0.5);margin:-6px 0 14px">If a cadet is unreachable for an extended period, officers may contact the guardian listed here.</p>
+      <div class="row">
+        <div><label>Guardian Full Name</label><input type="text" id="guardian_name" required></div>
+        <div><label>Guardian Phone</label><input type="tel" id="guardian_phone" required></div>
+      </div>
+
+      <div class="section-label">Medical Information <span class="opt">— optional</span></div>
+      <div class="row">
+        <div><label>Blood Group <span class="opt">optional</span></label>
+          <select id="blood_group">
+            <option value="">Unknown / prefer not to say</option>
+            <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
+            <option>AB+</option><option>AB-</option><option>O+</option><option>O-</option>
+          </select>
+        </div>
+        <div><label>Genotype <span class="opt">optional</span></label>
+          <select id="genotype">
+            <option value="">Unknown / prefer not to say</option>
+            <option>AA</option><option>AS</option><option>SS</option><option>AC</option>
+          </select>
+        </div>
+      </div>
+      <div class="row single">
+        <div><label>Medical Conditions / Allergies <span class="opt">optional</span></label>
+          <textarea id="medical_conditions" placeholder="Leave blank if none"></textarea>
+        </div>
+      </div>
+
+      <div class="submit-row">
+        <button type="submit" id="submitBtn">Submit Application</button>
+      </div>
+    </form>
+
+    <div id="successPanel" class="success" style="display:none">
+      <div class="seal"><span>✓</span></div>
+      <h2>Application Submitted</h2>
+      <p>Your enlistment record has been received and is awaiting officer review.<br>You'll be notified once it's approved.</p>
+      <div class="refnum" id="refDisplay"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const SUPABASE_URL = "https://vecfcvczglapfjidirjw.supabase.co";
+  const SUPABASE_ANON_KEY = "sb_publishable_bzrXlR1byQ5njZULxBaU_w_YMRBCdND";
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  document.getElementById('regForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('submitBtn');
+    const errBox = document.getElementById('formError');
+    errBox.style.display = 'none';
+    btn.disabled = true;
+    btn.textContent = 'Submitting...';
+
+    const payload = {
+      full_name: document.getElementById('full_name').value.trim(),
+      date_of_birth: document.getElementById('date_of_birth').value,
+      gender: document.getElementById('gender').value,
+      phone: document.getElementById('phone').value.trim(),
+      state_of_origin: document.getElementById('state_of_origin').value.trim() || null,
+      address: document.getElementById('address').value.trim(),
+      bus_stop: document.getElementById('bus_stop').value.trim() || null,
+      lga: document.getElementById('lga').value.trim() || null,
+      guardian_name: document.getElementById('guardian_name').value.trim(),
+      guardian_phone: document.getElementById('guardian_phone').value.trim(),
+      blood_group: document.getElementById('blood_group').value || null,
+      genotype: document.getElementById('genotype').value || null,
+      medical_conditions: document.getElementById('medical_conditions').value.trim() || null,
+    };
+
+    const { error } = await sb.from('pending_registrations').insert(payload);
+
+    btn.disabled = false;
+    btn.textContent = 'Submit Application';
+
+    if (error) {
+      errBox.textContent = 'Something went wrong: ' + error.message;
+      errBox.style.display = 'block';
+      return;
+    }
+
+    document.getElementById('regForm').style.display = 'none';
+    document.getElementById('successPanel').style.display = 'block';
+    const refCode = Date.now().toString(36).toUpperCase();
+    document.getElementById('refDisplay').textContent = 'Reference: ' + refCode;
+  });
+</script>
+</body>
+</html>
