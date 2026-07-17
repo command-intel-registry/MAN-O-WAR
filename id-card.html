@@ -6,7 +6,6 @@
 <title>Man O' War — My ID Card</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root{
     --olive:#2B3323; --khaki:#C7B888; --sand:#EDE6D6;
@@ -31,49 +30,39 @@
   .btn-brass:disabled{ opacity:0.5; }
   .error{ background:rgba(139,58,46,0.15); border:1px solid rgba(139,58,46,0.4); color:#E8B4A8; font-size:13px; padding:10px 12px; border-radius:3px; margin-bottom:14px; }
 
-  /* --- The actual ID card --- */
   #idCardWrap{ display:none; }
   .id-card{
     width:320px; margin:0 auto; background:linear-gradient(160deg, #F3EFE4, #E8E1D0);
     border-radius:16px; overflow:hidden; box-shadow:0 20px 50px -12px rgba(0,0,0,0.5);
     color:#1C2118; font-family:'Inter',sans-serif;
   }
-  .id-header{
-    background:linear-gradient(135deg, var(--olive), #3A4530);
-    padding:16px 18px; display:flex; align-items:center; gap:10px;
-  }
+  .id-header{ background:linear-gradient(135deg, var(--olive), #3A4530); padding:16px 18px; display:flex; align-items:center; gap:10px; }
   .id-header .crest{ width:34px; height:34px; border-radius:9999px; border:1.5px solid var(--brass-bright); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
   .id-header .crest span{ font-family:'Oswald',sans-serif; font-weight:700; color:var(--brass-bright); font-size:12px; }
-  .id-header .title{ color:var(--sand); }
-  .id-header .title .t1{ font-family:'Oswald',sans-serif; text-transform:uppercase; font-size:13px; font-weight:600; letter-spacing:0.04em; }
+  .id-header .title .t1{ font-family:'Oswald',sans-serif; text-transform:uppercase; font-size:13px; font-weight:600; color:var(--sand); }
   .id-header .title .t2{ font-size:9px; color:var(--khaki); text-transform:uppercase; letter-spacing:0.1em; }
 
   .id-photo-row{ display:flex; justify-content:center; padding:20px 0 10px; }
-  .id-photo{
-    width:96px; height:96px; border-radius:9999px; background:#D8D0BC; border:3px solid var(--brass);
-    display:flex; align-items:center; justify-content:center; overflow:hidden;
-  }
+  .id-photo{ width:96px; height:96px; border-radius:9999px; background:#D8D0BC; border:3px solid var(--brass); display:flex; align-items:center; justify-content:center; overflow:hidden; }
+  .id-photo img{ width:100%; height:100%; object-fit:cover; }
   .id-photo svg{ width:56px; height:56px; opacity:0.35; }
 
   .id-name{ text-align:center; font-family:'Oswald',sans-serif; text-transform:uppercase; font-size:18px; font-weight:600; margin:6px 0 2px; }
-  .id-code{ text-align:center; font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--bronze,#7A5B2E); letter-spacing:0.06em; margin-bottom:10px; }
-
+  .id-code{ text-align:center; font-family:'IBM Plex Mono',monospace; font-size:12px; color:#7A5B2E; letter-spacing:0.06em; margin-bottom:10px; }
   .id-status-row{ display:flex; justify-content:center; margin-bottom:16px; }
   .id-status{ font-size:10px; text-transform:uppercase; letter-spacing:0.08em; padding:4px 14px; border-radius:99px; background:rgba(90,122,74,0.18); color:#3F5A32; font-weight:600; }
-
   .id-qr-row{ display:flex; justify-content:center; padding:0 20px 20px; }
   .id-qr-row img{ width:110px; height:110px; border-radius:6px; background:white; padding:6px; }
-
   .id-footer{ background:rgba(0,0,0,0.05); padding:8px 18px 12px; text-align:center; }
   .id-footer .microtext{ font-size:8px; color:#6B6553; text-transform:uppercase; letter-spacing:0.08em; }
-
   .print-btn{ margin-top:20px; }
+  .again-btn{ margin-top:10px; background:none; border:1px solid var(--border); color:var(--khaki); }
 
   @media print{
     body *{ visibility:hidden; }
     #idCardWrap, #idCardWrap *{ visibility:visible; }
     #idCardWrap{ position:absolute; top:0; left:0; display:block !important; }
-    .print-btn{ display:none; }
+    .print-btn, .again-btn{ display:none; }
   }
 </style>
 </head>
@@ -87,7 +76,7 @@
     <div class="card">
       <div id="lookupError" class="error" style="display:none"></div>
       <label>Member Code</label>
-      <input type="text" id="memberCode" placeholder="GTC-0001">
+      <input type="text" id="memberCode" placeholder="e.g. 1 or GTC-0001">
       <label>Secret Code</label>
       <input type="text" id="secretCode" placeholder="6-character code">
       <button class="btn-brass" id="lookupBtn" onclick="lookupCard()">View My Card</button>
@@ -103,25 +92,21 @@
           <div class="t2">Cadet Identification</div>
         </div>
       </div>
-      <div class="id-photo-row">
-        <div class="id-photo">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5zm0 2c-3.3 0-10 1.7-10 5v3h20v-3c0-3.3-6.7-5-10-5z"/></svg>
-        </div>
-      </div>
+      <div class="id-photo-row"><div class="id-photo" id="cardPhotoWrap"></div></div>
       <div class="id-name" id="cardName">—</div>
       <div class="id-code" id="cardCode">—</div>
       <div class="id-status-row"><span class="id-status" id="cardStatus">—</span></div>
       <div class="id-qr-row"><img id="cardQr" src="" alt="QR code"></div>
-      <div class="id-footer">
-        <div class="microtext">Property of Man O' War · GTC Unit · Not transferable</div>
-      </div>
+      <div class="id-footer"><div class="microtext">Property of Man O' War · GTC Unit · Not transferable</div></div>
     </div>
     <button class="btn-brass print-btn" onclick="window.print()">Print This Card</button>
+    <button class="btn-brass again-btn" onclick="resetLookup()">Done — Check Another Card</button>
   </div>
 </div>
 
 <script>
   const FUNCTION_URL = "https://vecfcvczglapfjidirjw.supabase.co/functions/v1/verify-id-card";
+  const VERIFY_PAGE_URL = window.location.origin + "/verify.html";
 
   async function lookupCard(){
     const memberCode = document.getElementById('memberCode').value.trim();
@@ -159,7 +144,16 @@
       document.getElementById('cardName').textContent = data.full_name;
       document.getElementById('cardCode').textContent = data.member_code;
       document.getElementById('cardStatus').textContent = data.status.toUpperCase();
-      document.getElementById('cardQr').src = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(data.member_code);
+
+      const photoWrap = document.getElementById('cardPhotoWrap');
+      if(data.photo_url){
+        photoWrap.innerHTML = `<img src="${data.photo_url}" alt="Member photo">`;
+      } else {
+        photoWrap.innerHTML = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5zm0 2c-3.3 0-10 1.7-10 5v3h20v-3c0-3.3-6.7-5-10-5z"/></svg>`;
+      }
+
+      const verifyLink = VERIFY_PAGE_URL + '?code=' + encodeURIComponent(data.member_code);
+      document.getElementById('cardQr').src = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(verifyLink);
 
       document.getElementById('lookupSection').style.display = 'none';
       document.getElementById('idCardWrap').style.display = 'block';
@@ -169,6 +163,13 @@
       errBox.textContent = 'Could not reach the server. Try again.';
       errBox.style.display = 'block';
     }
+  }
+
+  function resetLookup(){
+    document.getElementById('memberCode').value = '';
+    document.getElementById('secretCode').value = '';
+    document.getElementById('idCardWrap').style.display = 'none';
+    document.getElementById('lookupSection').style.display = 'block';
   }
 </script>
 </body>
