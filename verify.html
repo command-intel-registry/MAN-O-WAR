@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Man O' War — Verification</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{ --olive:#2B3323; --khaki:#C7B888; --sand:#EDE6D6; --brass:#A8863C; --brass-bright:#C9A050; --ink:#1C2118; --ok:#5A7A4A; --alert:#8B3A2E; }
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:var(--olive); color:var(--sand); font-family:'Inter',sans-serif; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px; }
+  .result{ max-width:340px; width:100%; text-align:center; }
+  .icon{ width:72px; height:72px; border-radius:9999px; margin:0 auto 18px; display:flex; align-items:center; justify-content:center; }
+  .icon.ok{ background:rgba(90,122,74,0.2); border:2px solid var(--ok); }
+  .icon.fail{ background:rgba(139,58,46,0.2); border:2px solid var(--alert); }
+  .icon svg{ width:36px; height:36px; }
+  .icon.ok svg{ color:#9BC084; }
+  .icon.fail svg{ color:#E8B4A8; }
+  h1{ font-family:'Oswald',sans-serif; text-transform:uppercase; font-size:20px; margin:0 0 6px; }
+  .name{ font-family:'Oswald',sans-serif; text-transform:uppercase; font-size:24px; font-weight:700; color:var(--brass-bright); margin:14px 0 4px; }
+  .code{ font-family:'IBM Plex Mono',monospace; font-size:13px; color:var(--khaki); margin-bottom:10px; }
+  .status{ display:inline-block; font-size:11px; text-transform:uppercase; letter-spacing:0.08em; padding:5px 16px; border-radius:99px; background:rgba(90,122,74,0.2); color:#9BC084; font-weight:600; }
+  .sub{ color:var(--khaki); font-size:12px; margin-top:20px; text-transform:uppercase; letter-spacing:0.1em; }
+  .photo{ width:80px; height:80px; border-radius:9999px; margin:0 auto 10px; border:2px solid var(--brass); overflow:hidden; }
+  .photo img{ width:100%; height:100%; object-fit:cover; }
+</style>
+</head>
+<body>
+  <div class="result" id="result">Checking...</div>
+
+<script>
+  const FUNCTION_URL = "https://vecfcvczglapfjidirjw.supabase.co/functions/v1/public-verify";
+
+  (async () => {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('code');
+    const container = document.getElementById('result');
+
+    if(!code){
+      container.innerHTML = `<div class="icon fail"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></div><h1>No code provided</h1>`;
+      return;
+    }
+
+    try {
+      const resp = await fetch(FUNCTION_URL + '?code=' + encodeURIComponent(code));
+      const data = await resp.json();
+
+      if(!resp.ok || data.error){
+        container.innerHTML = `<div class="icon fail"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></div><h1>Not a Verified Member</h1><p class="sub">This code was not recognized</p>`;
+        return;
+      }
+
+      const photoHtml = data.photo_url ? `<div class="photo"><img src="${data.photo_url}"></div>` : '';
+
+      container.innerHTML = `
+        <div class="icon ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg></div>
+        <h1>Verified Member</h1>
+        ${photoHtml}
+        <div class="name">${data.full_name}</div>
+        <div class="code">${data.member_code}</div>
+        <span class="status">${data.status.toUpperCase()}</span>
+        <div class="sub">Man O' War — GTC Unit</div>
+      `;
+    } catch(e){
+      container.innerHTML = `<div class="icon fail"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></div><h1>Connection Error</h1>`;
+    }
+  })();
+</script>
+</body>
+</html>
