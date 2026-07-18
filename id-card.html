@@ -49,10 +49,30 @@
 
   .id-name{ text-align:center; font-family:'Oswald',sans-serif; text-transform:uppercase; font-size:18px; font-weight:600; margin:6px 0 2px; }
   .id-code{ text-align:center; font-family:'IBM Plex Mono',monospace; font-size:12px; color:#7A5B2E; letter-spacing:0.06em; margin-bottom:10px; }
-  .id-status-row{ display:flex; justify-content:center; margin-bottom:16px; }
+  .id-status-row{ display:flex; justify-content:center; margin-bottom:18px; }
   .id-status{ font-size:10px; text-transform:uppercase; letter-spacing:0.08em; padding:4px 14px; border-radius:99px; background:rgba(90,122,74,0.18); color:#3F5A32; font-weight:600; }
-  .id-qr-row{ display:flex; justify-content:center; padding:0 20px 20px; }
-  .id-qr-row img{ width:110px; height:110px; border-radius:6px; background:white; padding:6px; }
+
+  /* --- eye-catching QR frame --- */
+  .id-qr-section{ padding:0 24px 22px; display:flex; flex-direction:column; align-items:center; }
+  .id-qr-frame{
+    position:relative; padding:10px; border-radius:14px;
+    background:linear-gradient(135deg, var(--brass), var(--brass-bright), var(--brass));
+    box-shadow:0 8px 24px -6px rgba(168,134,60,0.55);
+  }
+  .id-qr-frame::before{
+    content:""; position:absolute; inset:-3px; border-radius:16px;
+    background:linear-gradient(135deg, var(--brass-bright), transparent, var(--brass-bright));
+    z-index:-1; opacity:0.6; filter:blur(4px);
+  }
+  .id-qr-inner{ background:white; border-radius:8px; padding:8px; }
+  .id-qr-inner img{ display:block; width:104px; height:104px; }
+  .id-qr-caption{
+    margin-top:8px; font-family:'Oswald',sans-serif; font-size:10px; font-weight:600;
+    text-transform:uppercase; letter-spacing:0.14em; color:var(--brass);
+    display:flex; align-items:center; gap:5px;
+  }
+  .id-qr-caption svg{ width:12px; height:12px; }
+
   .id-footer{ background:rgba(0,0,0,0.05); padding:8px 18px 12px; text-align:center; }
   .id-footer .microtext{ font-size:8px; color:#6B6553; text-transform:uppercase; letter-spacing:0.08em; }
   .print-btn{ margin-top:20px; }
@@ -96,7 +116,15 @@
       <div class="id-name" id="cardName">—</div>
       <div class="id-code" id="cardCode">—</div>
       <div class="id-status-row"><span class="id-status" id="cardStatus">—</span></div>
-      <div class="id-qr-row"><img id="cardQr" src="" alt="QR code"></div>
+      <div class="id-qr-section">
+        <div class="id-qr-frame">
+          <div class="id-qr-inner"><img id="cardQr" src="" alt="QR code"></div>
+        </div>
+        <div class="id-qr-caption">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7V5a2 2 0 012-2h2M17 3h2a2 2 0 012 2v2M21 17v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2"/></svg>
+          Scan to Verify
+        </div>
+      </div>
       <div class="id-footer"><div class="microtext">Property of Man O' War · GTC Unit · Not transferable</div></div>
     </div>
     <button class="btn-brass print-btn" onclick="window.print()">Print This Card</button>
