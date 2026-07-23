@@ -68,8 +68,11 @@
   .btn-ghost{ background:rgba(199,184,136,0.08); border:1px solid var(--border); color:var(--sand); border-radius:3px; padding:10px 18px; font-size:13px; }
   .btn-ghost:hover{ background:rgba(199,184,136,0.15); }
 
-  .member-row{ background:var(--ink); border:1px solid var(--border); border-radius:4px; padding:14px 18px; margin-bottom:8px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; }
+  .member-row{ background:var(--ink); border:1px solid var(--border); border-radius:4px; padding:14px 18px; margin-bottom:8px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; gap:12px; }
   .member-row:hover{ border-color:var(--brass); }
+  .member-row .mleft{ display:flex; align-items:center; gap:12px; }
+  .member-row .mthumb{ width:36px; height:36px; border-radius:9999px; object-fit:cover; border:1px solid var(--border); background:rgba(199,184,136,0.1); flex-shrink:0; }
+  .member-row .mthumb-placeholder{ width:36px; height:36px; border-radius:9999px; border:1px solid var(--border); background:rgba(199,184,136,0.08); flex-shrink:0; display:flex; align-items:center; justify-content:center; color:var(--khaki); font-size:10px; }
   .member-row .mcode{ font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--brass-bright); }
   .member-row .mname{ font-family:'Oswald',sans-serif; text-transform:uppercase; font-size:14px; margin-top:2px; }
   .status-pill{ font-size:10px; text-transform:uppercase; letter-spacing:0.06em; padding:4px 10px; border-radius:99px; }
@@ -84,6 +87,17 @@
   .action-row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; padding-top:14px; border-top:1px solid var(--border); }
   .action-row select{ background:rgba(199,184,136,0.06); border:1px solid var(--border); color:var(--sand); padding:9px 10px; border-radius:3px; font-size:13px; }
   .close-btn{ float:right; background:none; border:none; color:var(--khaki); font-size:18px; cursor:pointer; }
+
+  /* --- Photo upload block --- */
+  .photo-row{ display:flex; align-items:center; gap:16px; margin-bottom:18px; padding-bottom:18px; border-bottom:1px solid var(--border); }
+  .photo-preview{ width:80px; height:80px; border-radius:9999px; object-fit:cover; border:2px solid var(--brass); background:rgba(199,184,136,0.1); flex-shrink:0; }
+  .photo-preview-placeholder{ width:80px; height:80px; border-radius:9999px; border:2px dashed var(--border); background:rgba(199,184,136,0.05); flex-shrink:0; display:flex; align-items:center; justify-content:center; color:var(--khaki); font-size:11px; text-align:center; }
+  .photo-controls{ flex:1; }
+  .photo-controls .lbl{ display:block; font-size:10px; text-transform:uppercase; letter-spacing:0.06em; color:var(--khaki); margin-bottom:8px; }
+  .photo-controls input[type=file]{ margin-bottom:8px; font-size:12px; color:var(--khaki); }
+  .photo-status{ font-size:12px; margin-top:6px; }
+  .photo-status.ok{ color:#9BC084; }
+  .photo-status.err{ color:#E8B4A8; }
 </style>
 </head>
 <body>
@@ -130,7 +144,7 @@
 
     <div id="pane-members" class="tab-pane">
       <h2>Members</h2>
-      <p class="desc">Search by name or member code. Click a member to view details, reset a lost secret code, or update their status.</p>
+      <p class="desc">Search by name or member code. Click a member to view details, upload a photo, reset a lost secret code, or update their status.</p>
       <div class="search-row">
         <input type="text" id="memberSearch" placeholder="Search name or member code..." onkeydown="if(event.key==='Enter') searchMembers()">
         <button class="btn-ghost" onclick="searchMembers()">Search</button>
@@ -145,6 +159,7 @@
   const SUPABASE_URL = "https://vecfcvczglapfjidirjw.supabase.co";
   const SUPABASE_ANON_KEY = "sb_publishable_bzrXlR1byQ5njZULxBaU_w_YMRBCdND";
   const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const PHOTO_BUCKET = "member-photos";
 
   let currentUserId = null;
 
@@ -307,11 +322,17 @@
 
     resultsBox.innerHTML = data.map(m => {
       const statusClass = m.status === 'active' ? 'status-active' : m.status === 'awol' ? 'status-awol' : 'status-other';
+      const thumb = m.photo_url
+        ? `<img class="mthumb" src="${escapeHtml(m.photo_url)}" alt="">`
+        : `<div class="mthumb-placeholder">—</div>`;
       return `
       <div class="member-row" onclick="viewMember('${m.id}')">
-        <div>
-          <div class="mcode">${escapeHtml(m.member_code)}</div>
-          <div class="mname">${escapeHtml(m.full_name)}</div>
+        <div class="mleft">
+          ${thumb}
+          <div>
+            <div class="mcode">${escapeHtml(m.member_code)}</div>
+            <div class="mname">${escapeHtml(m.full_name)}</div>
+          </div>
         </div>
         <span class="status-pill ${statusClass}">${escapeHtml(m.status)}</span>
       </div>`;
@@ -323,10 +344,25 @@
     if(error || !m){ alert('Could not load member.'); return; }
 
     const detailBox = document.getElementById('memberDetail');
+    const photoPreview = m.photo_url
+      ? `<img class="photo-preview" id="photoPreview-${m.id}" src="${escapeHtml(m.photo_url)}" alt="">`
+      : `<div class="photo-preview-placeholder" id="photoPreview-${m.id}">No photo</div>`;
+
     detailBox.innerHTML = `
       <div class="detail-panel">
         <button class="close-btn" onclick="document.getElementById('memberDetail').innerHTML=''">✕</button>
         <div class="mname">${escapeHtml(m.full_name)} — ${escapeHtml(m.member_code)}</div>
+
+        <div class="photo-row">
+          ${photoPreview}
+          <div class="photo-controls">
+            <span class="lbl">Cadet Photo</span>
+            <input type="file" id="photoFile-${m.id}" accept="image/*">
+            <button class="btn-ghost" onclick="uploadPhoto('${m.id}')">Upload Photo</button>
+            <div class="photo-status" id="photoStatus-${m.id}"></div>
+          </div>
+        </div>
+
         <div class="detail-grid">
           <div><span class="lbl">Phone</span>${escapeHtml(m.phone || '—')}</div>
           <div><span class="lbl">Status</span>${escapeHtml(m.status)}</div>
@@ -352,6 +388,71 @@
           <button class="btn-brass" onclick="updateStatus('${m.id}', '${m.status}')">Update Status</button>
         </div>
       </div>`;
+  }
+
+  async function uploadPhoto(memberId){
+    const fileInput = document.getElementById('photoFile-' + memberId);
+    const statusBox = document.getElementById('photoStatus-' + memberId);
+    const file = fileInput.files[0];
+
+    statusBox.textContent = '';
+    statusBox.className = 'photo-status';
+
+    if(!file){
+      statusBox.textContent = 'Choose a photo first.';
+      statusBox.classList.add('err');
+      return;
+    }
+    if(!file.type.startsWith('image/')){
+      statusBox.textContent = 'Please choose an image file.';
+      statusBox.classList.add('err');
+      return;
+    }
+
+    statusBox.textContent = 'Uploading...';
+
+    // Use the member's id + original extension as the filename, and overwrite
+    // on re-upload (upsert) so replacing a photo doesn't leave old files behind.
+    const ext = file.name.split('.').pop().toLowerCase();
+    const filePath = `${memberId}.${ext}`;
+
+    const { error: uploadErr } = await sb.storage
+      .from(PHOTO_BUCKET)
+      .upload(filePath, file, { upsert: true, cacheControl: '3600' });
+
+    if(uploadErr){
+      statusBox.textContent = 'Upload failed: ' + uploadErr.message;
+      statusBox.classList.add('err');
+      return;
+    }
+
+    const { data: urlData } = sb.storage.from(PHOTO_BUCKET).getPublicUrl(filePath);
+    // Cache-bust so the new photo shows immediately even though the filename is the same.
+    const publicUrl = urlData.publicUrl + '?t=' + Date.now();
+
+    const { error: updateErr } = await sb.from('members')
+      .update({ photo_url: publicUrl, updated_at: new Date().toISOString() })
+      .eq('id', memberId);
+
+    if(updateErr){
+      statusBox.textContent = 'Photo uploaded but failed to save link: ' + updateErr.message;
+      statusBox.classList.add('err');
+      return;
+    }
+
+    statusBox.textContent = 'Photo updated.';
+    statusBox.classList.add('ok');
+
+    const previewEl = document.getElementById('photoPreview-' + memberId);
+    if(previewEl){
+      const img = document.createElement('img');
+      img.className = 'photo-preview';
+      img.id = 'photoPreview-' + memberId;
+      img.src = publicUrl;
+      previewEl.replaceWith(img);
+    }
+
+    searchMembers();
   }
 
   async function resetSecretCode(memberId){
