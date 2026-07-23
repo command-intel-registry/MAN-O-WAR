@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Man O' War — GTC Unit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --olive:#2B3323; --khaki:#C7B888; --sand:#EDE6D6;
+    --brass:#A8863C; --brass-bright:#C9A050; --ink:#1C2118;
+    --border:rgba(199,184,136,0.25);
+  }
+  *{ box-sizing:border-box; }
+  body{
+    margin:0; background:var(--olive); color:var(--sand);
+    font-family:'Inter',sans-serif; min-height:100vh;
+    background-image:
+      radial-gradient(circle at 20% 10%, rgba(168,134,60,0.08), transparent 45%),
+      radial-gradient(circle at 85% 90%, rgba(168,134,60,0.06), transparent 40%);
+  }
+  .wrap{ max-width:520px; margin:0 auto; padding:64px 20px 80px; }
+  .seal{
+    width:72px; height:72px; border-radius:9999px; border:2px solid var(--brass);
+    display:flex; align-items:center; justify-content:center; margin:0 auto 20px;
+    background:radial-gradient(circle at 30% 25%, rgba(201,160,80,0.2), transparent 70%);
+  }
+  .seal span{ font-family:'Oswald',sans-serif; font-weight:700; color:var(--brass-bright); font-size:24px; }
+  h1{ text-align:center; text-transform:uppercase; font-size:26px; font-weight:700; margin:0 0 6px; }
+  .subtitle{ text-align:center; color:var(--khaki); font-size:12px; text-transform:uppercase; letter-spacing:0.18em; margin-bottom:48px; }
+
+  .rooms{ display:flex; flex-direction:column; gap:14px; }
+  .room{
+    display:flex; align-items:center; gap:16px;
+    background:var(--ink); border:1px solid var(--border); border-radius:4px;
+    padding:20px 22px; text-decoration:none; color:var(--sand);
+    transition:border-color .15s ease, background .15s ease;
+  }
+  .room:hover{ border-color:var(--brass); background:rgba(199,184,136,0.05); }
+  .room .icon{
+    width:40px; height:40px; border-radius:9999px; border:1.5px solid var(--brass);
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    color:var(--brass-bright); font-family:'Oswald',sans-serif; font-weight:600; font-size:15px;
+  }
+  .room .text{ flex:1; }
+  .room .name{ font-family:'Oswald',sans-serif; text-transform:uppercase; font-size:15px; font-weight:600; letter-spacing:0.03em; }
+  .room .desc{ font-size:12px; color:var(--khaki); margin-top:2px; }
+  .room .arrow{ color:var(--khaki); font-size:18px; }
+
+  footer{ text-align:center; margin-top:48px; font-size:10px; color:rgba(237,230,214,0.35); text-transform:uppercase; letter-spacing:0.1em; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="seal"><span>GTC</span></div>
+  <h1>Man O' War</h1>
+  <p class="subtitle">GTC Unit — Choose Your Room</p>
+
+  <div class="rooms">
+    <a class="room" href="register.html">
+      <div class="icon">R</div>
+      <div class="text">
+        <div class="name">Register</div>
+        <div class="desc">New cadet enlistment application</div>
+      </div>
+      <div class="arrow">→</div>
+    </a>
+
+    <a class="room" href="portal.html">
+      <div class="icon">P</div>
+      <div class="text">
+        <div class="name">Member Portal</div>
+        <div class="desc">Cadet access — announcements, leadership, tactical AI</div>
+      </div>
+      <div class="arrow">→</div>
+    </a>
+
+    <a class="room" href="id-card.html">
+      <div class="icon">ID</div>
+      <div class="text">
+        <div class="name">My ID Card</div>
+        <div class="desc">View or print your cadet identification</div>
+      </div>
+      <div class="arrow">→</div>
+    </a>
+
+    <a class="room" href="officer.html">
+      <div class="icon">O</div>
+      <div class="text">
+        <div class="name">Officer Command</div>
+        <div class="desc">Restricted — officer and command login</div>
+      </div>
+      <div class="arrow">→</div>
+    </a>
+  </div>
+
+  <footer>Property of Man O' War · GTC Unit</footer>
+</div>
+</body>
+</html>
